@@ -89,6 +89,10 @@ import qualified Control.Monad.Trans.State.Lazy    as S
 import qualified Control.Monad.Trans.State.Strict  as S'
 import qualified Control.Monad.Trans.Writer.Lazy   as W'
 import qualified Control.Monad.Trans.Writer.Strict as W
+#if MIN_VERSION_transformers(0,5,6)
+import qualified Control.Monad.Trans.RWS.CPS       as RWS''
+import qualified Control.Monad.Trans.Writer.CPS    as W''
+#endif
 import Data.Monoid (Monoid, mappend)
 import Data.Functor.Compose (Compose (Compose))
 import Data.Functor.Identity (runIdentity)
@@ -140,6 +144,11 @@ instance MFunctor (RWS.RWST r w s) where
 instance MFunctor (RWS'.RWST r w s) where
     hoist nat m = RWS'.RWST (\r s -> nat (RWS'.runRWST m r s))
 
+#if MIN_VERSION_transformers(0,5,6)
+instance MFunctor (RWS''.RWST r w s) where
+    hoist nat m = RWS''.rwsT (\r s -> nat (RWS''.runRWST m r s))
+#endif
+
 instance MFunctor (S.StateT s) where
     hoist nat m = S.StateT (\s -> nat (S.runStateT m s))
 
@@ -151,6 +160,11 @@ instance MFunctor (W.WriterT w) where
 
 instance MFunctor (W'.WriterT w) where
     hoist nat m = W'.WriterT (nat (W'.runWriterT m))
+
+#if MIN_VERSION_transformers(0,5,6)
+instance MFunctor (W''.WriterT w) where
+    hoist nat m = W''.writerT (nat (W''.runWriterT m))
+#endif
 
 instance Functor f => MFunctor (Compose f) where
     hoist nat (Compose f) = Compose (fmap nat f)
